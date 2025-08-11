@@ -4,7 +4,8 @@ import Navbar from "./components/Navbar.jsx";
 import RentalShop from "./pages/RentalShop.jsx";
 import ProductPage from "./pages/ProductPage.jsx";
 import LoginPage from "./components/LoginPage.jsx";
-import DeliveryPage from "./pages/DeliveryPage.jsx"
+import RegisterPage from "./components/RegisterPage.jsx";
+import DeliveryPage from "./pages/DeliveryPage.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
     </Router>
