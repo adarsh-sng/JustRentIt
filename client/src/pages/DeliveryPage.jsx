@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../contexts/CartContext";
 
 const DeliveryPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { product, days, totalPrice } = location.state || {};
+  const { clearCart } = useCart();
+  const { product, days, totalPrice, cartItems, fromCart, hours, type } = location.state || {};
 
   // Initialize with user data from auth context
   const [invoiceAddress, setInvoiceAddress] = useState({
@@ -43,27 +45,37 @@ const DeliveryPage = () => {
   };
 
   const handlePayNow = () => {
+    // Clear cart if this was a cart checkout
+    if (fromCart) {
+      clearCart();
+    }
+    
     navigate('/payment-success', {
       state: {
         product,
         days,
         totalPrice,
         invoiceAddress,
-        permanentAddress
+        permanentAddress,
+        cartItems,
+        fromCart,
+        hours,
+        type
       }
     });
   };
 
-  if (!product) {
+  if (!product && !fromCart) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-600 mb-4">No order information found</h2>
+          <h2 className="text-2xl font-semibold text-gray-600 mb-4">No product selected</h2>
+          <p className="text-gray-500 mb-6">Please select a product to continue with the rental process.</p>
           <button
             onClick={() => navigate('/rental-shop')}
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded transition-colors"
           >
-            Back to Shop
+            Browse Products
           </button>
         </div>
       </div>
@@ -84,20 +96,55 @@ const DeliveryPage = () => {
             {/* Order Summary */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-xs text-gray-500">IMG</span>
+              
+              {fromCart ? (
+                <div className="space-y-3">
+                  {cartItems?.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                        <span className="text-xs text-gray-500">IMG</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{item.product.productName}</h3>
+                        <p className="text-sm text-gray-600">{item.product.category}</p>
+                        {item.rentalInfo?.type === 'short' ? (
+                          <p className="text-sm text-gray-600">{item.rentalInfo.hours} {item.rentalInfo.hours === 1 ? 'hour' : 'hours'}</p>
+                        ) : (
+                          <p className="text-sm text-gray-600">{item.rentalInfo?.days} days</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">Rs {item.totalPrice}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold">Total</span>
+                      <span className="font-semibold text-lg">Rs {totalPrice}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">{product.productName}</h3>
-                  <p className="text-sm text-gray-600">{product.category}</p>
-                  <p className="text-sm text-gray-600">{days} {days === 1 ? 'day' : 'days'} rental</p>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-gray-500">IMG</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{product?.productName}</h3>
+                    <p className="text-sm text-gray-600">{product?.category}</p>
+                    {type === 'short' ? (
+                      <p className="text-sm text-gray-600">{hours} {hours === 1 ? 'hour' : 'hours'} rental</p>
+                    ) : (
+                      <p className="text-sm text-gray-600">{days} {days === 1 ? 'day' : 'days'} rental</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">Rs {totalPrice}</p>
+                    <p className="text-sm text-gray-600">Rs {product?.productPrice}/{type === 'short' ? 'hour' : 'day'}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-gray-900">Rs {totalPrice}</p>
-                  <p className="text-sm text-gray-600">Rs {product.productPrice}/day</p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Invoice Address */}
@@ -244,10 +291,28 @@ const DeliveryPage = () => {
             <div className="bg-gray-50 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h2>
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Rental ({days} {days === 1 ? 'day' : 'days'})</span>
-                  <span className="text-gray-900">Rs {product.productPrice} × {days} = Rs {totalPrice}</span>
-                </div>
+                {fromCart ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Items ({cartItems?.length})</span>
+                      <span className="text-gray-900">Rs {totalPrice}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between text-sm">
+                    {type === 'short' ? (
+                      <>
+                        <span className="text-gray-600">Rental ({hours} {hours === 1 ? 'hour' : 'hours'})</span>
+                        <span className="text-gray-900">Rs {product?.productPrice} × {hours} = Rs {totalPrice}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-gray-600">Rental ({days} {days === 1 ? 'day' : 'days'})</span>
+                        <span className="text-gray-900">Rs {product?.productPrice} × {days} = Rs {totalPrice}</span>
+                      </>
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery Charges</span>
                   <span className="text-green-600">Free</span>

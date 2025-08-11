@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../contexts/ToastContext";
 import { products } from "../data/products";
 
 const ProductPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [rentalDays, setRentalDays] = useState(1);
+  const [rentalType, setRentalType] = useState('short'); // 'short' or 'long'
+  const [hours, setHours] = useState(1);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const { addToCart } = useCart();
+  const { addToast } = useToast();
 
   const product = products.find((p) => p.id === parseInt(id));
 
@@ -29,17 +36,64 @@ const ProductPage = () => {
     );
   }
 
-  const totalPrice = product.productPrice * rentalDays;
+  const calculatePrice = () => {
+    if (rentalType === 'short') {
+      return product.productPrice * hours;
+    } else {
+      if (!startDate || !endDate) return 0;
+      const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+      return product.productPrice * days;
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (rentalType === 'long' && (!startDate || !endDate)) {
+      addToast('Please select rental dates', 'error');
+      return;
+    }
+    
+    const totalPrice = calculatePrice();
+    
+    if (rentalType === 'short') {
+      addToCart(product, null, null, totalPrice, { type: 'short', hours });
+    } else {
+      const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+      addToCart(product, startDate, endDate, totalPrice, { type: 'long', days });
+    }
+    
+    addToast('Item added to cart!');
+  };
 
   const handleRentNow = () => {
-    // Navigate to delivery page with product and rental information
-    navigate('/DeliveryPage', { 
-      state: { 
-        product: product,
-        days: rentalDays,
-        totalPrice: totalPrice
-      }
-    });
+    if (rentalType === 'long' && (!startDate || !endDate)) {
+      addToast('Please select rental dates', 'error');
+      return;
+    }
+    
+    const totalPrice = calculatePrice();
+    
+    if (rentalType === 'short') {
+      navigate('/DeliveryPage', { 
+        state: { 
+          product: product,
+          hours: hours,
+          totalPrice: totalPrice,
+          type: 'short'
+        }
+      });
+    } else {
+      const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+      navigate('/DeliveryPage', { 
+        state: { 
+          product: product,
+          days: days,
+          totalPrice: totalPrice,
+          startDate,
+          endDate,
+          type: 'long'
+        }
+      });
+    }
   };
 
   return (
@@ -114,48 +168,99 @@ const ProductPage = () => {
 
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4">
-                    <label className="text-sm font-medium text-gray-700">
-                      Rental Duration:
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rental Type</label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="short"
+                        checked={rentalType === 'short'}
+                        onChange={(e) => setRentalType(e.target.value)}
+                        className="mr-2"
+                      />
+                      Short Term (Hours)
                     </label>
-                    <div className="flex items-center space-x-2 bg-white border rounded p-1">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="long"
+                        checked={rentalType === 'long'}
+                        onChange={(e) => setRentalType(e.target.value)}
+                        className="mr-2"
+                      />
+                      Long Term (Days)
+                    </label>
+                  </div>
+                </div>
+
+                {rentalType === 'short' ? (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hours</label>
+                    <div className="flex items-center space-x-2">
                       <button
-                        onClick={() =>
-                          setRentalDays(Math.max(1, rentalDays - 1))
-                        }
-                        className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded"
+                        onClick={() => setHours(Math.max(1, hours - 1))}
+                        className="w-8 h-8 flex items-center justify-center border rounded"
                       >
                         -
                       </button>
-                      <span className="px-3 text-center font-medium">
-                        {rentalDays} {rentalDays === 1 ? "day" : "days"}
-                      </span>
+                      <span className="px-3">{hours} {hours === 1 ? 'hour' : 'hours'}</span>
                       <button
-                        onClick={() => setRentalDays(rentalDays + 1)}
-                        className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded"
+                        onClick={() => setHours(hours + 1)}
+                        className="w-8 h-8 flex items-center justify-center border rounded"
                       >
                         +
                       </button>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-gray-900">
-                      Total: Rs {totalPrice}
-                    </span>
+                ) : (
+                  <div className="space-y-3 mb-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full p-2 border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          min={startDate || new Date().toISOString().split('T')[0]}
+                          className="w-full p-2 border rounded"
+                        />
+                      </div>
+                    </div>
+                    {startDate && endDate && (
+                      <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                        Duration: {Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1} days
+                      </div>
+                    )}
                   </div>
+                )}
+
+                <div className="text-right mb-4">
+                  <span className="text-lg font-bold">Total: Rs {calculatePrice()}</span>
                 </div>
 
                 <div className="flex space-x-3">
                   <button
-                    onClick={handleRentNow}
-                    className="flex-1 bg-white border border-blue-500 text-blue-500 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+                    onClick={handleAddToCart}
+                    disabled={rentalType === 'long' && (!startDate || !endDate)}
+                    className="flex-1 border border-blue-500 text-blue-500 py-2 rounded hover:bg-blue-50 disabled:opacity-50"
                   >
                     Add to Cart
                   </button>
                   <button
                     onClick={handleRentNow}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors"
+                    disabled={rentalType === 'long' && (!startDate || !endDate)}
+                    className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
                   >
                     Rent Now
                   </button>

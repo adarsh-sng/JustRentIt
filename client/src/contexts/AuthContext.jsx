@@ -71,12 +71,29 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('justrentit_auth');
   };
 
+  const updateUser = async (updatedData) => {
+    // Simulate API call - replace with actual API later
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          const updatedUser = { ...user, ...updatedData };
+          setUser(updatedUser);
+          localStorage.setItem('justrentit_auth', JSON.stringify({ user: updatedUser, token: 'mock-token' }));
+          resolve({ success: true, user: updatedUser });
+        } catch (error) {
+          reject({ error: 'Failed to update profile' });
+        }
+      }, 500);
+    });
+  };
+
   const value = {
     user,
     isLoading,
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated: !!user
   };
 

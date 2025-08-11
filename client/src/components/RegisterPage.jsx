@@ -38,9 +38,9 @@ const RegisterPage = () => {
     }
   };
 
+  // validate array
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.password) newErrors.password = 'Password is required';
@@ -97,7 +97,7 @@ const RegisterPage = () => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="e.g. John Doe"
+            placeholder="e.g. Kumar raushan"
             error={errors.name}
             required
             autoComplete="name"

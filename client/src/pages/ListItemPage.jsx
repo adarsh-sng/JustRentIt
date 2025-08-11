@@ -10,7 +10,8 @@ const ListItemPage = () => {
   
   const [formData, setFormData] = useState({
     productName: '',
-    productPrice: '',
+    hourlyPrice: '',
+    dailyPrice: '',
     category: '',
     description: '',
     availability: 'In Stock',
@@ -19,6 +20,8 @@ const ListItemPage = () => {
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,13 +31,82 @@ const ListItemPage = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 5) {
+      setErrors(prev => ({ ...prev, images: 'only 1 image for now' }));
+      return;
+    }
+
+    const oversizedFiles = files.filter(file => file.size > 10 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setErrors(prev => ({ ...prev, images: 'Each image must be less than 10MB' }));
+      return;
+    }
+
+    setSelectedImages(files);
+    
+    // Create preview URLs
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+    
+    // Clear any existing image errors
+    if (errors.images) {
+      setErrors(prev => ({ ...prev, images: '' }));
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    
+    if (files.length > 5) {
+      setErrors(prev => ({ ...prev, images: 'Maximum 5 images allowed' }));
+      return;
+    }
+
+    // Validate file sizes
+    const oversizedFiles = files.filter(file => file.size > 10 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setErrors(prev => ({ ...prev, images: 'Each image must be less than 10MB' }));
+      return;
+    }
+
+    setSelectedImages(files);
+    
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+
+    if (errors.images) {
+      setErrors(prev => ({ ...prev, images: '' }));
+    }
+  };
+
+  const removeImage = (index) => {
+    const newImages = selectedImages.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    
+    URL.revokeObjectURL(imagePreviews[index]);
+    
+    setSelectedImages(newImages);
+    setImagePreviews(newPreviews);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.productName.trim()) newErrors.productName = 'Product name is required';
-    if (!formData.productPrice) newErrors.productPrice = 'Price is required';
-    if (isNaN(formData.productPrice) || formData.productPrice <= 0) {
-      newErrors.productPrice = 'Price must be a valid positive number';
+    if (!formData.hourlyPrice) newErrors.hourlyPrice = 'Hourly price is required';
+    if (isNaN(formData.hourlyPrice) || formData.hourlyPrice <= 0) {
+      newErrors.hourlyPrice = 'Hourly price must be a valid positive number';
+    }
+    if (!formData.dailyPrice) newErrors.dailyPrice = 'Daily price is required';
+    if (isNaN(formData.dailyPrice) || formData.dailyPrice <= 0) {
+      newErrors.dailyPrice = 'Daily price must be a valid positive number';
     }
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
@@ -51,29 +123,53 @@ const ListItemPage = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call - replace with actual API later
+      // Create FormData for file upload
+      const uploadData = new FormData();
+      Object.keys(formData).forEach(key => {
+        uploadData.append(key, formData[key]);
+      });
+      selectedImages.forEach((image, index) => {
+        uploadData.append(`images`, image);
+      });
+      uploadData.append('ownerId', user.id);
+      uploadData.append('ownerName', user.name);
+
+      // TODO: Replace with actual API call
+      // Example backend integration:
+      // const response = await fetch('/api/items', {
+      //   method: 'POST',
+      //   body: uploadData,
+      //   headers: {
+      //     'Authorization': `Bearer ${userToken}` // if using auth tokens
+      //   }
+      // });
+      // 
+      // if (!response.ok) {
+      //   throw new Error('Failed to upload item');
+      // }
+      // 
+      // const result = await response.json();
+      // console.log('Item uploaded successfully:', result);
+
+      // For now, simulate the API call
       const newItem = {
         id: Date.now(),
         ...formData,
-        productPrice: parseFloat(formData.productPrice),
+        hourlyPrice: parseFloat(formData.hourlyPrice),
+        dailyPrice: parseFloat(formData.dailyPrice),
         ownerId: user.id,
         ownerName: user.name,
+        images: selectedImages.map(img => img.name), // In real API, this would be URLs
         createdAt: new Date().toISOString()
       };
-
-      // Add to local storage for now (will be replaced with API call)
-      const existingItems = JSON.parse(localStorage.getItem('userListedItems') || '[]');
-      existingItems.push(newItem);
-      localStorage.setItem('userListedItems', JSON.stringify(existingItems));
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      navigate('/rental-shop', { 
-        state: { 
-          message: 'Item listed successfully! It will be reviewed and published soon.' 
-        }
-      });
+      // Clean up preview URLs
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+
+      navigate('/listing-success');
     } catch (error) {
       console.error('Failed to list item:', error);
       setErrors({ general: 'Failed to list item. Please try again.' });
@@ -111,43 +207,64 @@ const ListItemPage = () => {
               required
             />
 
-            {/* Price and Category Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Daily Rental Price (Rs)"
-                type="number"
-                name="productPrice"
-                value={formData.productPrice}
-                onChange={handleChange}
-                placeholder="e.g. 50"
-                error={errors.productPrice}
-                required
-                min="1"
-                step="1"
-              />
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
+            {/* Price Fields */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Rental Pricing</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Hourly Price (Rs)"
+                  type="number"
+                  name="hourlyPrice"
+                  value={formData.hourlyPrice}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.category ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  placeholder="e.g. 50"
+                  error={errors.hourlyPrice}
                   required
-                >
-                  <option value="">Select a category</option>
-                  {categories.slice(1).map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-                {errors.category && (
-                  <p className="text-sm text-red-600">{errors.category}</p>
-                )}
+                  min="1"
+                  step="1"
+                />
+
+                <Input
+                  label="Daily Price (Rs)"
+                  type="number"
+                  name="dailyPrice"
+                  value={formData.dailyPrice}
+                  onChange={handleChange}
+                  placeholder="e.g. 10"
+                  error={errors.dailyPrice}
+                  required
+                  min="1"
+                  step="1"
+                />
               </div>
+              <p className="text-sm text-gray-500">
+                Hourly price is for short-term rentals, daily price is for long-term rentals
+              </p>
+            </div>
+
+            {/* Category */}
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.category ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              >
+                <option value="">Select a category</option>
+                {categories.slice(1).map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+                <option value="Others">Others</option>
+              </select>
+              {errors.category && (
+                <p className="text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             {/* Description */}
@@ -203,30 +320,61 @@ const ListItemPage = () => {
               </div>
             </div>
 
-            {/* Image Upload Placeholder */}
+            {/* Image Upload */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">Product Images</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-600">Image upload will be available soon</p>
-                  <p className="text-xs text-gray-500">For now, your item will be listed with a placeholder image</p>
+              <div className="space-y-4">
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                    max="5"
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600">Click to upload images or drag and drop</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB each (only 1 image for now)</p>
+                    </div>
+                  </label>
                 </div>
+                
+                {errors.images && (
+                  <p className="text-sm text-red-600">{errors.images}</p>
+                )}
+                
+                {/* Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2">Important Guidelines</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Ensure your item is in good working condition</li>
-                <li>• Set a fair rental price based on market rates</li>
-                <li>• Provide accurate descriptions to avoid disputes</li>
-                <li>• You're responsible for the item's availability</li>
-                <li>• All listings are subject to approval</li>
-              </ul>
             </div>
 
             {/* Submit Button */}
@@ -242,7 +390,7 @@ const ListItemPage = () => {
               <Button
                 type="submit"
                 isLoading={isLoading}
-                disabled={!formData.productName || !formData.productPrice || !formData.category || !formData.description}
+                disabled={!formData.productName || !formData.hourlyPrice || !formData.dailyPrice || !formData.category || !formData.description}
                 className="flex-1"
               >
                 List My Item

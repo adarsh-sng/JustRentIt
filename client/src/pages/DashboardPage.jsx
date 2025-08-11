@@ -118,33 +118,6 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button 
-                  onClick={() => navigate('/rental-shop')}
-                  className="w-full"
-                >
-                  Browse Items
-                </Button>
-                <Button 
-                  onClick={() => navigate('/list-item')}
-                  variant="outline"
-                  className="w-full"
-                >
-                  List New Item
-                </Button>
-                <Button 
-                  onClick={() => setActiveTab('rented')}
-                  variant="ghost"
-                  className="w-full"
-                >
-                  View My Rentals
-                </Button>
-              </div>
-            </div>
-
             {/* Recent Activity */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
@@ -277,7 +250,10 @@ const DashboardPage = () => {
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="font-semibold text-gray-900">Rs {item.productPrice}/day</div>
+                          <div className="font-semibold text-gray-900">
+                            <div>Rs {item.hourlyPrice}/hour</div>
+                            <div>Rs {item.dailyPrice}/day</div>
+                          </div>
                           <div className="text-sm text-gray-500">{item.availability}</div>
                           <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
                             Active

@@ -22,18 +22,18 @@ const RentalShop = () => {
     if (selectedCategory !== "all" && item.category !== selectedCategory)
       return false;
     if (priceRange === "all") return true;
-    if (priceRange === "0-30") return item.productPrice <= 30;
+    if (priceRange === "0-30") return item.dailyPrice <= 30;
     if (priceRange === "30-60")
-      return item.productPrice > 30 && item.productPrice <= 60;
+      return item.dailyPrice > 30 && item.dailyPrice <= 60;
     if (priceRange === "60-100")
-      return item.productPrice > 60 && item.productPrice <= 100;
+      return item.dailyPrice > 60 && item.dailyPrice <= 100;
     return true;
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (sortBy === "name") return a.productName.localeCompare(b.productName);
-    if (sortBy === "price-low") return a.productPrice - b.productPrice;
-    if (sortBy === "price-high") return b.productPrice - a.productPrice;
+    if (sortBy === "price-low") return a.dailyPrice - b.dailyPrice;
+    if (sortBy === "price-high") return b.dailyPrice - a.dailyPrice;
     return 0;
   });
 
@@ -116,16 +116,16 @@ const RentalShop = () => {
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
 
         <div className="mb-6">
-          <h4 className="font-medium mb-2">Price Range</h4>
+          <h4 className="font-medium mb-2">Daily Price Range</h4>
           <select
             value={priceRange}
             onChange={(e) => setPriceRange(e.target.value)}
             className="w-full p-2 border rounded bg-white"
           >
             <option value="all">All Prices</option>
-            <option value="0-30">Rs0 - Rs30</option>
-            <option value="30-60">Rs30 - Rs60</option>
-            <option value="60-100">Rs60 - Rs100</option>
+            <option value="0-30">Rs0 - Rs30/day</option>
+            <option value="30-60">Rs30 - Rs60/day</option>
+            <option value="60-100">Rs60 - Rs100/day</option>
           </select>
         </div>
       </div>
@@ -198,32 +198,39 @@ const RentalShop = () => {
             <div
               key={item.id}
               className={`border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
-                viewMode === "list" ? "flex" : ""
+                viewMode === "list" ? "flex items-center" : ""
               }`}
             >
               <div
                 className={`bg-gray-200 ${
-                  viewMode === "card" ? "h-48" : "h-24 w-24"
+                  viewMode === "card" ? "h-48" : "h-24 w-24 flex-shrink-0"
                 } flex items-center justify-center`}
               >
-                <span className="text-gray-500">placeholder lol</span>
+                <span className="text-gray-500 text-xs">placeholder</span>
               </div>
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-lg">{item.productName}</h3>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                    {item.category}
-                  </span>
+              <div className={`p-4 ${viewMode === "list" ? "flex-1 flex items-center justify-between" : ""}`}>
+                <div className={viewMode === "list" ? "flex-1" : ""}>
+                  <div className={`${viewMode === "list" ? "flex items-center justify-between mb-2" : "flex justify-between items-start mb-2"}`}>
+                    <h3 className="font-medium text-lg">{item.productName}</h3>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full ml-2">
+                      {item.category}
+                    </span>
+                  </div>
+                  <div className={`text-blue-600 font-bold ${viewMode === "list" ? "mb-0" : "mb-3"}`}>
+                    <div>Rs {item.hourlyPrice}/hour</div>
+                    <div>Rs {item.dailyPrice}/day</div>
+                  </div>
                 </div>
-                <p className="text-blue-600 font-bold mb-3">
-                  Rs {item.productPrice}/day
-                </p>
-                <button 
-                  onClick={() => navigate(`/product/${item.id}`)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full transition-colors"
-                >
-                  Rent Now
-                </button>
+                <div className={viewMode === "list" ? "ml-4" : ""}>
+                  <button 
+                    onClick={() => navigate(`/product/${item.id}`)}
+                    className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors ${
+                      viewMode === "list" ? "whitespace-nowrap" : "w-full"
+                    }`}
+                  >
+                    Rent Now
+                  </button>
+                </div>
               </div>
             </div>
           ))}

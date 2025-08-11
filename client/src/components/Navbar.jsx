@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../contexts/CartContext";
 import { Button } from "./ui";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount } = useCart();
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -14,6 +31,7 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     setIsMenuOpen(false);
+    setIsProfileOpen(false);
   };
 
   return (
@@ -55,30 +73,48 @@ const Navbar = () => {
                   List Item
                 </Link>
                 <Link
-                  to="/wishlist"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
-                >
-                  Wishlist
-                </Link>
-                <Link
                   to="/cart"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
+                  className="relative px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
                 >
                   Cart
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {itemCount}
+                    </span>
+                  )}
                 </Link>
               </>
             )}
             
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">Welcome, {user?.name}</span>
-                <Button 
-                  onClick={handleLogout}
-                  variant="outline"
-                  size="sm"
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300"
                 >
-                  Logout
-                </Button>
+                  <span>Welcome, {user?.name}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -177,18 +213,18 @@ const Navbar = () => {
                   List Item
                 </Link>
                 <Link
-                  to="/wishlist"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  Wishlist
-                </Link>
-                <Link
                   to="/cart"
                   onClick={() => setIsMenuOpen(false)}
+                  className="relative block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  Cart {itemCount > 0 && `(${itemCount})`}
+                </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMenuOpen(false)}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
-                  Cart
+                  Profile Settings
                 </Link>
                 <div className="px-3 py-2">
                   <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
