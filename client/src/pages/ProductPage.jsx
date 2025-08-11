@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 import { useToast } from "../contexts/ToastContext";
-import { products } from "../data/products";
+import { productAPI } from "../services/api";
 
 const ProductPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [rentalType, setRentalType] = useState('short'); // 'short' or 'long'
   const [hours, setHours] = useState(1);
   const [startDate, setStartDate] = useState('');
@@ -14,7 +16,34 @@ const ProductPage = () => {
   const { addToCart } = useCart();
   const { addToast } = useToast();
 
-  const product = products.find((p) => p.id === parseInt(id));
+  useEffect(() => {
+    fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      const response = await productAPI.getProductById(id);
+      setProduct(response.data);
+    } catch (error) {
+      console.error('Failed to fetch product:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <h2 className="text-2xl font-semibold text-gray-600 mb-4">
+              Loading...
+            </h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -38,11 +67,11 @@ const ProductPage = () => {
 
   const calculatePrice = () => {
     if (rentalType === 'short') {
-      return product.productPrice * hours;
+      return product.hourlyPrice * hours;
     } else {
       if (!startDate || !endDate) return 0;
       const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
-      return product.productPrice * days;
+      return product.dailyPrice * days;
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { products as staticProducts } from '../data/products';
+import { productAPI } from '../services/api';
 
 export const useProducts = () => {
   const [products, setProducts] = useState([]);
@@ -15,16 +15,8 @@ export const useProducts = () => {
     setError(null);
     
     try {
-      // Simulate API call - replace with actual API later
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Get user-listed items from localStorage
-      const userListedItems = JSON.parse(localStorage.getItem('userListedItems') || '[]');
-      
-      // Combine static products with user-listed items
-      const allProducts = [...staticProducts, ...userListedItems];
-      
-      setProducts(allProducts);
+      const response = await productAPI.getAllProducts();
+      setProducts(response.data.products || []);
     } catch (err) {
       console.error('Failed to fetch products:', err);
       setError('Failed to fetch products');
@@ -34,30 +26,31 @@ export const useProducts = () => {
   };
 
   const getProductById = (id) => {
-    return products.find(product => product.id === parseInt(id));
+    return products.find(product => product._id === id || product.id === parseInt(id));
   };
 
   const addProduct = async (productData) => {
     try {
-      // Simulate API call - replace with actual API later
-      const newProduct = {
-        id: Date.now(),
-        ...productData,
-        createdAt: new Date().toISOString()
-      };
-
-      // Add to local storage
-      const userListedItems = JSON.parse(localStorage.getItem('userListedItems') || '[]');
-      userListedItems.push(newProduct);
-      localStorage.setItem('userListedItems', JSON.stringify(userListedItems));
-
-      // Update local state
-      setProducts(prev => [...prev, newProduct]);
+      const formData = new FormData();
       
-      return { success: true, product: newProduct };
+      Object.keys(productData).forEach(key => {
+        if (key === 'images' && Array.isArray(productData[key])) {
+          productData[key].forEach((image) => {
+            formData.append('images', image);
+          });
+        } else if (key !== 'images') {
+          formData.append(key, productData[key]);
+        }
+      });
+
+      const response = await productAPI.createProduct(formData);
+      
+      setProducts(prev => [response.data, ...prev]);
+      
+      return { success: true, product: response.data };
     } catch (err) {
       console.error('Failed to add product:', err);
-      throw new Error('Failed to add product');
+      throw new Error(err.message || 'Failed to add product');
     }
   };
 

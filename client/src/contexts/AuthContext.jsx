@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -7,84 +8,90 @@ const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored authentication on app load
-    const storedAuth = localStorage.getItem('justrentit_auth');
-    if (storedAuth) {
-      try {
-        const authData = JSON.parse(storedAuth);
-        setUser(authData.user);
-      } catch (error) {
-        console.error('Error parsing stored auth:', error);
-        localStorage.removeItem('justrentit_auth');
-      }
-    }
-    setIsLoading(false);
+    checkAuthStatus();
   }, []);
 
+  const checkAuthStatus = async () => {
+    try {
+      // First check if we have auth data in localStorage
+      const storedAuth = localStorage.getItem('justrentit_auth');
+      if (!storedAuth) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await authAPI.getCurrentUser();
+      setUser(response.data);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('justrentit_auth');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const login = async (email, password) => {
-    // Simulate API call - replace with actual API later
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Mock authentication logic
-        if (email && password) {
-          const userData = {
-            id: 1,
-            name: "Adarsh Kumar",
-            email: email,
-            phone: "+91 9876543210"
-          };
-          
-          setUser(userData);
-          localStorage.setItem('justrentit_auth', JSON.stringify({ user: userData, token: 'mock-token' }));
-          resolve({ success: true, user: userData });
-        } else {
-          reject({ error: 'Invalid credentials' });
-        }
-      }, 1000);
-    });
+    try {
+      const response = await authAPI.login({ email, password });
+      setUser(response.data.user);
+      localStorage.setItem('justrentit_auth', JSON.stringify({ 
+        user: response.data.user, 
+        token: response.data.accessToken 
+      }));
+      return { success: true, user: response.data.user };
+    } catch (error) {
+      throw { error: error.message || 'Login failed' };
+    }
   };
 
   const register = async (userData) => {
-    // Simulate API call - replace with actual API later
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (userData.name && userData.email && userData.password) {
-          const newUser = {
-            id: Date.now(),
-            name: userData.name,
-            email: userData.email,
-            phone: userData.phone || ""
-          };
-          
-          setUser(newUser);
-          localStorage.setItem('justrentit_auth', JSON.stringify({ user: newUser, token: 'mock-token' }));
-          resolve({ success: true, user: newUser });
-        } else {
-          reject({ error: 'Invalid registration data' });
-        }
-      }, 1000);
-    });
+    try {
+      const response = await authAPI.register(userData);
+      setUser(response.data.user);
+      localStorage.setItem('justrentit_auth', JSON.stringify({ 
+        user: response.data.user, 
+        token: response.data.accessToken 
+      }));
+      return { success: true, user: response.data.user };
+    } catch (error) {
+      throw { error: error.message || 'Registration failed' };
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('justrentit_auth');
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('justrentit_auth');
+    }
   };
 
   const updateUser = async (updatedData) => {
-    // Simulate API call - replace with actual API later
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        try {
-          const updatedUser = { ...user, ...updatedData };
-          setUser(updatedUser);
-          localStorage.setItem('justrentit_auth', JSON.stringify({ user: updatedUser, token: 'mock-token' }));
-          resolve({ success: true, user: updatedUser });
-        } catch (error) {
-          reject({ error: 'Failed to update profile' });
-        }
-      }, 500);
-    });
+    try {
+      let response;
+      
+      if (updatedData instanceof FormData) {
+        response = await authAPI.updateProfile(updatedData);
+      } else {
+        const formData = new FormData();
+        Object.keys(updatedData).forEach(key => {
+          formData.append(key, updatedData[key]);
+        });
+        response = await authAPI.updateProfile(formData);
+      }
+      
+      setUser(response.data);
+      localStorage.setItem('justrentit_auth', JSON.stringify({ 
+        user: response.data, 
+        token: localStorage.getItem('justrentit_auth') ? JSON.parse(localStorage.getItem('justrentit_auth')).token : null
+      }));
+      return { success: true, user: response.data };
+    } catch (error) {
+      throw { error: error.message || 'Failed to update profile' };
+    }
   };
 
   const value = {

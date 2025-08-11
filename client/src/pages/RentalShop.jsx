@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { products, categories } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
+import { categories } from '../data/products';
 
 const RentalShop = () => {
   const navigate = useNavigate();
+  const { products, isLoading } = useProducts();
   const [viewMode, setViewMode] = useState("card");
   const [sortBy, setSortBy] = useState("name");
   const [priceRange, setPriceRange] = useState("all");
@@ -11,6 +13,20 @@ const RentalShop = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold text-gray-600 mb-4">
+              Loading products...
+            </h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredItems = products.filter((item) => {
     if (
@@ -196,7 +212,7 @@ const RentalShop = () => {
         >
           {sortedItems.map((item) => (
             <div
-              key={item.id}
+              key={item._id || item.id}
               className={`border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
                 viewMode === "list" ? "flex items-center" : ""
               }`}
@@ -206,7 +222,15 @@ const RentalShop = () => {
                   viewMode === "card" ? "h-48" : "h-24 w-24 flex-shrink-0"
                 } flex items-center justify-center`}
               >
-                <span className="text-gray-500 text-xs">placeholder</span>
+                {item.images && item.images[0] ? (
+                  <img 
+                    src={item.images[0]} 
+                    alt={item.productName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-gray-500 text-xs">placeholder</span>
+                )}
               </div>
               <div className={`p-4 ${viewMode === "list" ? "flex-1 flex items-center justify-between" : ""}`}>
                 <div className={viewMode === "list" ? "flex-1" : ""}>
@@ -223,7 +247,7 @@ const RentalShop = () => {
                 </div>
                 <div className={viewMode === "list" ? "ml-4" : ""}>
                   <button 
-                    onClick={() => navigate(`/product/${item.id}`)}
+                    onClick={() => navigate(`/product/${item._id || item.id}`)}
                     className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors ${
                       viewMode === "list" ? "whitespace-nowrap" : "w-full"
                     }`}

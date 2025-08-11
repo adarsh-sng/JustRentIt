@@ -17,6 +17,7 @@ import DashboardPage from './pages/DashboardPage.jsx'
 import Cart from './pages/Cart.jsx'
 import Profile from './pages/Profile.jsx'
 import ListingSuccess from './pages/ListingSuccess.jsx'
+import TestPage from './pages/TestPage.jsx'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Navbar />
               <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/test" element={<TestPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/rental-shop" element={<RentalShop />} />

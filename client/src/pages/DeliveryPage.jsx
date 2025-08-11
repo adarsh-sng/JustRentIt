@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../contexts/CartContext";
+import { orderAPI } from '../services/api';
 
 const DeliveryPage = () => {
   const location = useLocation();
@@ -9,23 +10,24 @@ const DeliveryPage = () => {
   const { user } = useAuth();
   const { clearCart } = useCart();
   const { product, days, totalPrice, cartItems, fromCart, hours, type } = location.state || {};
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Initialize with user data from auth context
+  // Initialize with user data from auth context, including address fields
   const [invoiceAddress, setInvoiceAddress] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
     email: user?.email || '',
-    address: '',
-    city: '',
-    pincode: ''
+    address: user?.address || '',
+    city: user?.city || '',
+    pincode: user?.pincode || ''
   });
 
   const [permanentAddress, setPermanentAddress] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    address: '',
-    city: '',
-    pincode: ''
+    address: user?.address || '',
+    city: user?.city || '',
+    pincode: user?.pincode || ''
   });
 
   const [sameAsInvoice, setSameAsInvoice] = useState(false);
@@ -44,25 +46,76 @@ const DeliveryPage = () => {
     }
   };
 
-  const handlePayNow = () => {
-    // Clear cart if this was a cart checkout
-    if (fromCart) {
-      clearCart();
-    }
-    
-    navigate('/payment-success', {
-      state: {
-        product,
-        days,
-        totalPrice,
-        invoiceAddress,
-        permanentAddress,
-        cartItems,
-        fromCart,
-        hours,
-        type
+  const handlePayNow = async () => {
+    if (isProcessing) return;
+
+    try {
+      setIsProcessing(true);
+
+      // Validate required fields
+      const requiredFields = ['name', 'phone', 'email', 'address', 'city', 'pincode'];
+      const missingFields = requiredFields.filter(field => !invoiceAddress[field]);
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+        return;
       }
-    });
+
+      let orderResponse;
+
+      if (fromCart) {
+        // Create cart order
+        const cartOrderData = {
+          cartItems,
+          totalPrice,
+          invoiceAddress,
+          deliveryAddress: sameAsInvoice ? invoiceAddress : permanentAddress,
+          notes: ''
+        };
+
+        console.log('Sending cart order data:', cartOrderData);
+        orderResponse = await orderAPI.createCartOrder(cartOrderData);
+        console.log('Cart order created:', orderResponse);
+        
+        // Clear cart after successful order
+        clearCart();
+      } else {
+        // Create single product order
+        const orderData = {
+          productId: product._id || product.id,
+          days: days || (hours ? hours / 24 : 1),
+          totalPrice,
+          invoiceAddress,
+          deliveryAddress: sameAsInvoice ? invoiceAddress : permanentAddress,
+          notes: ''
+        };
+
+        orderResponse = await orderAPI.createOrder(orderData);
+        console.log('Single order created:', orderResponse);
+      }
+
+      // Navigate to success page
+      navigate('/payment-success', {
+        state: {
+          product,
+          days,
+          totalPrice,
+          invoiceAddress,
+          deliveryAddress: sameAsInvoice ? invoiceAddress : permanentAddress,
+          cartItems,
+          fromCart,
+          hours,
+          type,
+          orderResponse
+        }
+      });
+
+    } catch (error) {
+      console.error('Order creation failed:', error);
+      alert(`Order failed: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!product && !fromCart) {
@@ -326,9 +379,14 @@ const DeliveryPage = () => {
 
               <button
                 onClick={handlePayNow}
-                className="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors"
+                disabled={isProcessing}
+                className={`w-full mt-6 py-3 rounded-lg font-medium transition-colors ${
+                  isProcessing 
+                    ? 'bg-gray-400 cursor-not-allowed text-white' 
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
               >
-                Pay Now - Rs {totalPrice}
+                {isProcessing ? 'Processing Order...' : `Pay Now - Rs ${totalPrice}`}
               </button>
             </div>
           </div>

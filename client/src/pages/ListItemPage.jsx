@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../hooks/useAuth";
+import { useProducts } from "../hooks/useProducts";
 import { Button, Input, Card } from '../components/ui';
 import { categories } from '../data/products';
 
 const ListItemPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addProduct } = useProducts();
   
   const [formData, setFormData] = useState({
     productName: '',
@@ -123,48 +125,14 @@ const ListItemPage = () => {
     setIsLoading(true);
 
     try {
-      // Create FormData for file upload
-      const uploadData = new FormData();
-      Object.keys(formData).forEach(key => {
-        uploadData.append(key, formData[key]);
-      });
-      selectedImages.forEach((image, index) => {
-        uploadData.append(`images`, image);
-      });
-      uploadData.append('ownerId', user.id);
-      uploadData.append('ownerName', user.name);
-
-      // TODO: Replace with actual API call
-      // Example backend integration:
-      // const response = await fetch('/api/items', {
-      //   method: 'POST',
-      //   body: uploadData,
-      //   headers: {
-      //     'Authorization': `Bearer ${userToken}` // if using auth tokens
-      //   }
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Failed to upload item');
-      // }
-      // 
-      // const result = await response.json();
-      // console.log('Item uploaded successfully:', result);
-
-      // For now, simulate the API call
-      const newItem = {
-        id: Date.now(),
+      const productData = {
         ...formData,
         hourlyPrice: parseFloat(formData.hourlyPrice),
         dailyPrice: parseFloat(formData.dailyPrice),
-        ownerId: user.id,
-        ownerName: user.name,
-        images: selectedImages.map(img => img.name), // In real API, this would be URLs
-        createdAt: new Date().toISOString()
+        images: selectedImages
       };
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await addProduct(productData);
 
       // Clean up preview URLs
       imagePreviews.forEach(url => URL.revokeObjectURL(url));
@@ -172,7 +140,7 @@ const ListItemPage = () => {
       navigate('/listing-success');
     } catch (error) {
       console.error('Failed to list item:', error);
-      setErrors({ general: 'Failed to list item. Please try again.' });
+      setErrors({ general: error.message || 'Failed to list item. Please try again.' });
     } finally {
       setIsLoading(false);
     }

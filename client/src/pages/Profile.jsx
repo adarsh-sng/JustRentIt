@@ -12,7 +12,9 @@ const Profile = () => {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: user?.address || ''
+    address: user?.address || '',
+    city: user?.city || '',
+    pincode: user?.pincode || ''
   });
 
   const handleInputChange = (e) => {
@@ -62,7 +64,9 @@ const Profile = () => {
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      address: user?.address || ''
+      address: user?.address || '',
+      city: user?.city || '',
+      pincode: user?.pincode || ''
     });
     setIsEditing(false);
     setProfileImage(null);
@@ -192,15 +196,45 @@ const Profile = () => {
             <div>
               <label className="block text-sm text-gray-600 mb-1">Address</label>
               {isEditing ? (
-                <input
-                  type="text"
+                <textarea
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
+                  rows="3"
                 />
               ) : (
                 <p>{user?.address || 'Not set'}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">City</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              ) : (
+                <p>{user?.city || 'Not set'}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Pincode</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              ) : (
+                <p>{user?.pincode || 'Not set'}</p>
               )}
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from "../hooks/useAuth";
 import { Button } from '../components/ui';
 import { useNavigate } from 'react-router-dom';
+import { orderAPI, productAPI } from '../services/api';
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -11,31 +12,39 @@ const DashboardPage = () => {
   const [listedItems, setListedItems] = useState([]);
 
   useEffect(() => {
-    // Load user's rented items from localStorage
-    const rented = JSON.parse(localStorage.getItem('userRentedItems') || '[]');
-    setRentedItems(rented.filter(item => item.userId === user?.id));
-
-    // Load user's listed items from localStorage
-    const listed = JSON.parse(localStorage.getItem('userListedItems') || '[]');
-    setListedItems(listed.filter(item => item.ownerId === user?.id));
+    if (user) {
+      fetchUserData();
+    }
   }, [user]);
 
-  const handleReturnItem = (itemId) => {
-    const updatedRented = rentedItems.map(item => 
-      item.id === itemId 
-        ? { ...item, status: 'returned', returnDate: new Date().toISOString() }
-        : item
-    );
-    setRentedItems(updatedRented);
-    
-    // Update localStorage
-    const allRented = JSON.parse(localStorage.getItem('userRentedItems') || '[]');
-    const updatedAll = allRented.map(item => 
-      item.id === itemId 
-        ? { ...item, status: 'returned', returnDate: new Date().toISOString() }
-        : item
-    );
-    localStorage.setItem('userRentedItems', JSON.stringify(updatedAll));
+  const fetchUserData = async () => {
+    try {
+      // Fetch user's orders
+      const ordersResponse = await orderAPI.getMyOrders();
+      setRentedItems(ordersResponse.data.orders || []);
+
+      // Fetch user's listed products
+      const productsResponse = await productAPI.getMyProducts();
+      setListedItems(productsResponse.data.products || []);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
+
+  const handleReturnItem = async (itemId) => {
+    try {
+      await orderAPI.returnItem(itemId);
+      
+      const updatedRented = rentedItems.map(item => 
+        item._id === itemId 
+          ? { ...item, status: 'returned', actualReturnDate: new Date().toISOString() }
+          : item
+      );
+      setRentedItems(updatedRented);
+    } catch (error) {
+      console.error('Failed to return item:', error);
+      alert('Failed to return item. Please try again.');
+    }
   };
 
   const handleEditItem = (item) => {
@@ -44,13 +53,17 @@ const DashboardPage = () => {
     navigate('/list-item');
   };
 
-  const handleRemoveItem = (itemId) => {
+  const handleRemoveItem = async (itemId) => {
     if (window.confirm('Are you sure you want to remove this item?')) {
-      const updatedListed = listedItems.filter(item => item.id !== itemId);
-      setListedItems(updatedListed);
-      
-      // Update localStorage
-      localStorage.setItem('userListedItems', JSON.stringify(updatedListed));
+      try {
+        await productAPI.deleteProduct(itemId);
+        
+        const updatedListed = listedItems.filter(item => item._id !== itemId);
+        setListedItems(updatedListed);
+      } catch (error) {
+        console.error('Failed to remove item:', error);
+        alert('Failed to remove item. Please try again.');
+      }
     }
   };
 
@@ -167,50 +180,53 @@ const DashboardPage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {rentedItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-xs text-gray-500">IMG</span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{item.productName}</h3>
-                          <p className="text-sm text-gray-600">{item.category}</p>
-                          <p className="text-sm text-gray-500">
-                            Rented: {new Date(item.rentDate).toLocaleDateString()} 
-                            {item.returnDate && ` - Returned: ${new Date(item.returnDate).toLocaleDateString()}`}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">Rs {item.totalPrice}</div>
-                          <div className="text-sm text-gray-500">{item.days} days</div>
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                            item.status === 'active' ? 'bg-blue-100 text-blue-600' :
-                            item.status === 'returned' ? 'bg-green-100 text-green-600' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>
-                            {item.status || 'active'}
-                          </span>
-                        </div>
-                        {item.status === 'active' && (
-                          <Button 
-                            onClick={() => handleReturnItem(item.id)}
-                            variant="outline"
-                            size="sm"
-                          >
-                            Return Item
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+               <div className="grid gap-4">
+                 {rentedItems.map((item) => (
+                   <div key={item._id} className="bg-white border border-gray-200 rounded-lg p-6">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center space-x-4">
+                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                           {item.product?.images?.[0] ? (
+                             <img src={item.product.images[0]} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
+                           ) : (
+                             <span className="text-xs text-gray-500">IMG</span>
+                           )}
+                         </div>
+                         <div>
+                           <h3 className="font-semibold text-gray-900">{item.productName}</h3>
+                           <p className="text-sm text-gray-600">{item.category}</p>
+                           <p className="text-sm text-gray-500">
+                             Rented: {new Date(item.rentDate).toLocaleDateString()} 
+                             {item.actualReturnDate && ` - Returned: ${new Date(item.actualReturnDate).toLocaleDateString()}`}
+                           </p>
+                         </div>
+                       </div>
+                       <div className="flex items-center space-x-4">
+                         <div className="text-right">
+                           <div className="font-semibold text-gray-900">Rs {item.totalPrice}</div>
+                           <div className="text-sm text-gray-500">{item.days} days</div>
+                           <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                             item.status === 'active' ? 'bg-blue-100 text-blue-600' :
+                             item.status === 'returned' ? 'bg-green-100 text-green-600' :
+                             'bg-gray-100 text-gray-600'
+                           }`}>
+                             {item.status || 'active'}
+                           </span>
+                         </div>
+                         {item.status === 'active' && (
+                           <Button 
+                             onClick={() => handleReturnItem(item._id)}
+                             variant="outline"
+                             size="sm"
+                           >
+                             Return Item
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>            )}
           </div>
         )}
 
@@ -232,56 +248,59 @@ const DashboardPage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {listedItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-xs text-gray-500">IMG</span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{item.productName}</h3>
-                          <p className="text-sm text-gray-600">{item.category}</p>
-                          <p className="text-sm text-gray-500">
-                            Listed: {new Date(item.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            <div>Rs {item.hourlyPrice}/hour</div>
-                            <div>Rs {item.dailyPrice}/day</div>
-                          </div>
-                          <div className="text-sm text-gray-500">{item.availability}</div>
-                          <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
-                            Active
-                          </span>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button 
-                            onClick={() => handleEditItem(item)}
-                            variant="outline"
-                            size="sm"
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            onClick={() => handleRemoveItem(item.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+               <div className="grid gap-4">
+                 {listedItems.map((item) => (
+                   <div key={item._id} className="bg-white border border-gray-200 rounded-lg p-6">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center space-x-4">
+                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                           {item.images?.[0] ? (
+                             <img src={item.images[0]} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
+                           ) : (
+                             <span className="text-xs text-gray-500">IMG</span>
+                           )}
+                         </div>
+                         <div>
+                           <h3 className="font-semibold text-gray-900">{item.productName}</h3>
+                           <p className="text-sm text-gray-600">{item.category}</p>
+                           <p className="text-sm text-gray-500">
+                             Listed: {new Date(item.createdAt).toLocaleDateString()}
+                           </p>
+                         </div>
+                       </div>
+                       <div className="flex items-center space-x-4">
+                         <div className="text-right">
+                           <div className="font-semibold text-gray-900">
+                             <div>Rs {item.hourlyPrice}/hour</div>
+                             <div>Rs {item.dailyPrice}/day</div>
+                           </div>
+                           <div className="text-sm text-gray-500">{item.availability}</div>
+                           <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
+                             Active
+                           </span>
+                         </div>
+                         <div className="flex space-x-2">
+                           <Button 
+                             onClick={() => handleEditItem(item)}
+                             variant="outline"
+                             size="sm"
+                           >
+                             Edit
+                           </Button>
+                           <Button 
+                             onClick={() => handleRemoveItem(item._id)}
+                             variant="ghost"
+                             size="sm"
+                             className="text-red-600 hover:text-red-700"
+                           >
+                             Remove
+                           </Button>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>            )}
           </div>
         )}
       </div>
