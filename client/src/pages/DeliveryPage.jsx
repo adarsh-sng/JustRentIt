@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { userData } from '../data/user';
+import { useAuth } from "../hooks/useAuth";
 
 const DeliveryPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { product, days, totalPrice } = location.state || {};
 
-  // Initialize with user data from API
+  // Initialize with user data from auth context
   const [invoiceAddress, setInvoiceAddress] = useState({
-    name: userData.name,
-    phone: userData.phone,
-    email: userData.email,
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
     address: '',
     city: '',
     pincode: ''
   });
 
   const [permanentAddress, setPermanentAddress] = useState({
-    name: userData.name,
-    phone: userData.phone,
+    name: user?.name || '',
+    phone: user?.phone || '',
     address: '',
     city: '',
     pincode: ''
@@ -110,7 +111,7 @@ const DeliveryPage = () => {
                     value={invoiceAddress.name}
                     onChange={(e) => handleInvoiceChange('name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={userData.name}
+                    placeholder={user?.name || 'Enter your full name'}
                   />
                 </div>
                 <div>
@@ -120,7 +121,7 @@ const DeliveryPage = () => {
                     value={invoiceAddress.phone}
                     onChange={(e) => handleInvoiceChange('phone', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={userData.phone}
+                    placeholder={user?.phone || 'Enter phone number'}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -130,7 +131,7 @@ const DeliveryPage = () => {
                     value={invoiceAddress.email}
                     onChange={(e) => handleInvoiceChange('email', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={userData.email}
+                    placeholder={user?.email || 'Enter email address'}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -192,7 +193,7 @@ const DeliveryPage = () => {
                       value={permanentAddress.name}
                       onChange={(e) => setPermanentAddress(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder={userData.name}
+                      placeholder={user?.name || 'Enter your full name'}
                     />
                   </div>
                   <div>
@@ -202,7 +203,7 @@ const DeliveryPage = () => {
                       value={permanentAddress.phone}
                       onChange={(e) => setPermanentAddress(prev => ({ ...prev, phone: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      placeholder={userData.phone}
+                      placeholder={user?.phone || 'Enter phone number'}
                     />
                   </div>
                   <div className="md:col-span-2">

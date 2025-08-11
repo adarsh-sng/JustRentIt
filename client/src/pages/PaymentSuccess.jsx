@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from "../hooks/useAuth";
 
 const PaymentSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { product, days, totalPrice, invoiceAddress, permanentAddress } = location.state || {};
 
   const generateOrderId = () => {
@@ -13,6 +15,32 @@ const PaymentSuccess = () => {
   const orderId = generateOrderId();
   const orderDate = new Date().toLocaleDateString('en-IN');
   const deliveryDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString('en-IN');
+
+  // Save rental data when component mounts
+  useEffect(() => {
+    if (product && user) {
+      const rentalData = {
+        id: Date.now(),
+        userId: user.id,
+        productName: product.productName,
+        category: product.category,
+        productPrice: product.productPrice,
+        days: days,
+        totalPrice: totalPrice,
+        orderId: orderId,
+        rentDate: new Date().toISOString(),
+        deliveryDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        invoiceAddress: invoiceAddress,
+        deliveryAddress: permanentAddress?.address ? permanentAddress : invoiceAddress
+      };
+
+      // Save to localStorage
+      const existingRentals = JSON.parse(localStorage.getItem('userRentedItems') || '[]');
+      existingRentals.push(rentalData);
+      localStorage.setItem('userRentedItems', JSON.stringify(existingRentals));
+    }
+  }, [product, user, days, totalPrice, orderId, invoiceAddress, permanentAddress]);
 
   if (!product) {
     return (
@@ -134,17 +162,6 @@ const PaymentSuccess = () => {
               </div>
             </div>
 
-            {/* Important Notes */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2">Important Information</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• A security deposit will be collected at the time of delivery</li>
-                <li>• Please keep the product in good condition during the rental period</li>
-                <li>• Return the item in the same condition to get your security deposit back</li>
-                <li>• Our delivery partner will contact you 1 day before delivery</li>
-                <li>• For any queries, contact our support team</li>
-              </ul>
-            </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
