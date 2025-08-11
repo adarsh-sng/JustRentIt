@@ -15,10 +15,10 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 // Routes
-// import v1Router from './routes/index.js';
+import v1Router from './routes/index.js';
 
 // Routes Declaration
-// app.use('/api/v1', v1Router);
+app.use('/api/v1', v1Router);
 
 // https://localhost:3000/api/v1/users/register
 export { app };
