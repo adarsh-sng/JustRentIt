@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { products } from "../data/products";
 
 const ProductPage = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
-  const [selectedImage, setSelectedImage] = useState(0);
   const [rentalDays, setRentalDays] = useState(1);
 
   const product = products.find((p) => p.id === parseInt(id));
@@ -32,7 +32,14 @@ const ProductPage = () => {
   const totalPrice = product.productPrice * rentalDays;
 
   const handleRentNow = () => {
-    alert(`Added ${product.productName} to cart for ${rentalDays} days!`);
+    // Navigate to delivery page with product and rental information
+    navigate('/DeliveryPage', { 
+      state: { 
+        product: product,
+        days: rentalDays,
+        totalPrice: totalPrice
+      }
+    });
   };
 
   return (
@@ -75,23 +82,7 @@ const ProductPage = () => {
               <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
                 <span className="text-gray-500 text-lg">Product Image</span>
               </div>
-              <div className="flex space-x-2 overflow-x-auto">
-                {[1, 2, 3, 4].map((img, index) => (
-                  <div
-                    key={index}
-                    className={`w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer transition-all ${
-                      selectedImage === index
-                        ? "ring-2 ring-blue-500 ring-offset-2"
-                        : "hover:ring-2 hover:ring-gray-300 hover:ring-offset-1"
-                    }`}
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <span className="text-xs text-gray-500">
-                      IMG {index + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
+             
             </div>
 
             {/* Product Details */}
@@ -106,32 +97,8 @@ const ProductPage = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(product.rating)
-                            ? "text-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">
-                    ({product.rating}) • {product.reviews} reviews
-                  </span>
-                </div>
-
                 <div className="flex items-baseline space-x-2 mb-6">
-                  <span className="text-4xl font-bold text-blue-600">
-                    Rs {product.productPrice}
-                  </span>
+                  <span className="text-4xl font-bold text-blue-600">Rs {product.productPrice}</span>
                   <span className="text-lg text-gray-500">/ day</span>
                 </div>
               </div>
@@ -145,32 +112,6 @@ const ProductPage = () => {
                 </p>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  Features
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {product.features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-2 p-2 bg-gray-50 rounded"
-                    >
-                      <svg
-                        className="w-4 h-4 text-green-500 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm text-gray-700">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -231,10 +172,6 @@ const ProductPage = () => {
                 <div className="flex justify-between text-sm">
                   <span className="font-medium text-gray-700">Pickup:</span>
                   <span className="text-gray-600">{product.pickup}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium text-gray-700">Return:</span>
-                  <span className="text-gray-600">{product.returnPolicy}</span>
                 </div>
               </div>
             </div>
