@@ -1,7 +1,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
-import { Product } from '../models/product.model.js';
+import { Product, PRODUCT_CATEGORIES } from '../models/product.model.js';
 import { uploadOnCloudinary } from '../utils/Cloudinary.js';
 
 const createProduct = asyncHandler(async (req, res) => {
@@ -232,6 +232,12 @@ const getMyProducts = asyncHandler(async (req, res) => {
     }, 'My products fetched successfully'));
 });
 
+const getCategories = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, PRODUCT_CATEGORIES, 'Categories fetched successfully'));
+});
+
 export {
   createProduct,
   getAllProducts,
@@ -239,5 +245,6 @@ export {
   updateProduct,
   deleteProduct,
   getUserProducts,
-  getMyProducts
+  getMyProducts,
+  getCategories
 };

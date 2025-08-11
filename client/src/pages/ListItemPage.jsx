@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../hooks/useAuth";
 import { useProducts } from "../hooks/useProducts";
+import { useCategories } from "../hooks/useCategories";
 import { Button, Input, Card } from '../components/ui';
-import { categories } from '../data/products';
 
 const ListItemPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addProduct } = useProducts();
+  const { categoriesForForm, isLoading: categoriesLoading } = useCategories();
   
   const [formData, setFormData] = useState({
     productName: '',
@@ -225,10 +226,9 @@ const ListItemPage = () => {
                 required
               >
                 <option value="">Select a category</option>
-                {categories.slice(1).map(category => (
+                {categoriesForForm.map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
-                <option value="Others">Others</option>
               </select>
               {errors.category && (
                 <p className="text-sm text-red-600">{errors.category}</p>

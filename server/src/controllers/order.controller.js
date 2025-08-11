@@ -43,7 +43,7 @@ const createOrder = asyncHandler(async (req, res) => {
     productName: product.productName,
     category: product.category,
     productPrice: product.productPrice,
-    days: parseInt(days),
+    days: Math.max(parseFloat(days), 0.1), // Ensure minimum 0.1 days for hourly rentals
     totalPrice: parseFloat(totalPrice),
     rentDate,
     expectedReturnDate,

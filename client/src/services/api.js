@@ -107,6 +107,7 @@ export const productAPI = {
     const queryString = new URLSearchParams(params).toString();
     return apiService.get(`/products/user/${userId}${queryString ? `?${queryString}` : ''}`);
   },
+  getCategories: () => apiService.get('/products/categories'),
 };
 
 export const orderAPI = {

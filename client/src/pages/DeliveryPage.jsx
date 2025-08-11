@@ -154,8 +154,16 @@ const DeliveryPage = () => {
                 <div className="space-y-3">
                   {cartItems?.map((item, index) => (
                     <div key={index} className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                        <span className="text-xs text-gray-500">IMG</span>
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+                        {item.product.images && item.product.images.length > 0 ? (
+                          <img 
+                            src={item.product.images[0]} 
+                            alt={item.product.productName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-500">IMG</span>
+                        )}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900">{item.product.productName}</h3>
@@ -180,8 +188,16 @@ const DeliveryPage = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-xs text-gray-500">IMG</span>
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                    {product?.images && product?.images.length > 0 ? (
+                      <img 
+                        src={product.images[0]} 
+                        alt={product.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-500">IMG</span>
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{product?.productName}</h3>

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
-import { categories } from '../data/products';
+import { useCategories } from '../hooks/useCategories';
 
 const RentalShop = () => {
   const navigate = useNavigate();
   const { products, isLoading } = useProducts();
+  const { categories } = useCategories();
   const [viewMode, setViewMode] = useState("card");
   const [sortBy, setSortBy] = useState("name");
   const [priceRange, setPriceRange] = useState("all");

@@ -93,4 +93,4 @@ export const products = [
   }
 ]
 
-export const categories = ['All', 'Electronics', 'Sports', 'Music', 'Gaming', 'Outdoor']
+export const categories = ['All', 'Electronics', 'Sports', 'Books', 'Vehicles', 'Fashion', 'Home & Garden', 'Tools', 'Music', 'Gaming', 'Outdoor', 'Others']

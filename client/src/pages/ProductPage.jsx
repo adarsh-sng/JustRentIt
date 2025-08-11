@@ -162,8 +162,16 @@ const ProductPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
             {/* Product Images */}
             <div className="space-y-4">
-              <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 text-lg">Product Image</span>
+              <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                {product.images && product.images.length > 0 ? (
+                  <img 
+                    src={product.images[0]} 
+                    alt={product.productName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-gray-500 text-lg">No Image Available</span>
+                )}
               </div>
              
             </div>

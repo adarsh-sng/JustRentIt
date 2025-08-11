@@ -16,7 +16,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['Electronics', 'Sports', 'Books', 'Vehicles', 'Fashion', 'Home & Garden', 'Tools', 'Others']
+    enum: ['Electronics', 'Sports', 'Books', 'Vehicles', 'Fashion', 'Home & Garden', 'Tools', 'Music', 'Gaming', 'Outdoor', 'Others']
   },
   productPrice: {
     type: Number,
@@ -75,5 +75,8 @@ productSchema.index({ productName: 'text', description: 'text' });
 productSchema.index({ category: 1 });
 productSchema.index({ owner: 1 });
 productSchema.index({ isActive: 1 });
+
+// Export the categories for API use
+export const PRODUCT_CATEGORIES = ['Electronics', 'Sports', 'Books', 'Vehicles', 'Fashion', 'Home & Garden', 'Tools', 'Music', 'Gaming', 'Outdoor', 'Others'];
 
 export const Product = mongoose.model('Product', productSchema);
