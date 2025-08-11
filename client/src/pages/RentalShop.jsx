@@ -55,101 +55,83 @@ const RentalShop = () => {
   });
 
   return (
-    <div className="flex flex-col md:flex-row w-full">
-      <div className="sticky top-0 z-10 w-full bg-white shadow-md p-4 md:hidden">
-        <button
-          onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-          className="w-full flex justify-between items-center p-2 bg-gray-100 rounded"
-        >
-          <span className="font-medium">Categories</span>
-          <span>{isCategoryOpen ? "▲" : "▼"}</span>
-        </button>
-        {isCategoryOpen && (
-          <ul className="mt-2 bg-white border rounded-md shadow-lg p-2">
-            {categories.map((category) => (
-              <li
-                key={category}
-                onClick={() => {
-                  setSelectedCategory(
-                    category.toLowerCase() === "all" ? "all" : category
-                  );
-                  setIsCategoryOpen(false);
-                }}
-                className={`p-2 hover:bg-gray-100 cursor-pointer ${
-                  selectedCategory ===
-                  (category.toLowerCase() === "all" ? "all" : category)
-                    ? "bg-blue-100 text-blue-600 font-medium"
-                    : ""
-                }`}
-              >
-                {category}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Mobile filter toggle */}
-      <div className="md:hidden p-4">
-        <button
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="w-full p-2 bg-gray-100 rounded flex justify-center items-center"
-        >
-          {isFilterOpen ? "Hide Filters" : "Show Filters"}
-        </button>
-      </div>
-
-      {/* Left sidebar for filters */}
+    <div className="flex h-screen bg-gray-50">
+      {/* Fixed Left Sidebar */}
       <div
         className={`${
           isFilterOpen ? "block" : "hidden"
-        } md:block w-full md:w-64 p-4 bg-gray-50`}
+        } md:block fixed md:relative left-0 top-0 z-20 w-full md:w-64 h-full bg-white border-r border-gray-200 overflow-y-auto`}
       >
-        {/* Categories - Desktop view */}
-        <div className="hidden md:block mb-6">
-          <h2 className="text-lg font-semibold mb-3">Categories</h2>
-          <ul className="space-y-2">
-            {categories.map((category) => (
-              <li
-                key={category}
-                onClick={() =>
-                  setSelectedCategory(
-                    category.toLowerCase() === "all" ? "all" : category
-                  )
-                }
-                className={`hover:text-blue-600 cursor-pointer p-2 rounded transition-colors ${
-                  selectedCategory ===
-                  (category.toLowerCase() === "all" ? "all" : category)
-                    ? "bg-blue-100 text-blue-600 font-medium"
-                    : ""
-                }`}
-              >
-                {category}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <div className="p-4">
+          {/* Mobile filter toggle inside sidebar */}
+          <div className="md:hidden mb-4">
+            <button
+              onClick={() => setIsFilterOpen(false)}
+              className="w-full p-2 bg-gray-100 rounded flex justify-center items-center"
+            >
+              Hide Filters
+            </button>
+          </div>
 
-        <h3 className="text-lg font-semibold mb-4">Filters</h3>
+          {/* Categories */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3">Categories</h2>
+            <ul className="space-y-2">
+              {categories.map((category) => (
+                <li
+                  key={category}
+                  onClick={() => {
+                    setSelectedCategory(
+                      category.toLowerCase() === "all" ? "all" : category
+                    );
+                    setIsCategoryOpen(false);
+                    setIsFilterOpen(false); // Close mobile filter on selection
+                  }}
+                  className={`hover:text-blue-600 cursor-pointer p-2 rounded transition-colors ${
+                    selectedCategory ===
+                    (category.toLowerCase() === "all" ? "all" : category)
+                      ? "bg-blue-100 text-blue-600 font-medium"
+                      : ""
+                  }`}
+                >
+                  {category}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <div className="mb-6">
-          <h4 className="font-medium mb-2">Daily Price Range</h4>
-          <select
-            value={priceRange}
-            onChange={(e) => setPriceRange(e.target.value)}
-            className="w-full p-2 border rounded bg-white"
-          >
-            <option value="all">All Prices</option>
-            <option value="0-30">Rs0 - Rs30/day</option>
-            <option value="30-60">Rs30 - Rs60/day</option>
-            <option value="60-100">Rs60 - Rs100/day</option>
-          </select>
+          <h3 className="text-lg font-semibold mb-4">Filters</h3>
+
+          <div className="mb-6">
+            <h4 className="font-medium mb-2">Daily Price Range</h4>
+            <select
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              className="w-full p-2 border rounded bg-white"
+            >
+              <option value="all">All Prices</option>
+              <option value="0-30">Rs0 - Rs30/day</option>
+              <option value="30-60">Rs30 - Rs60/day</option>
+              <option value="60-100">Rs60 - Rs100/day</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 p-4">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Main content - Scrollable */}
+      <div className="flex-1 md:ml-0 h-full overflow-y-auto">
+        <div className="p-4">
+          {/* Mobile filter toggle */}
+          <div className="md:hidden mb-4">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="w-full p-2 bg-blue-500 text-white rounded flex justify-center items-center"
+            >
+              {isFilterOpen ? "Hide Filters" : "Show Filters"}
+            </button>
+          </div>
+
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -204,61 +186,62 @@ const RentalShop = () => {
           </div>
         </div>
 
-        <div
-          className={`grid ${
-            viewMode === "card"
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "grid-cols-1 gap-4"
-          }`}
-        >
-          {sortedItems.map((item) => (
-            <div
-              key={item._id || item.id}
-              className={`border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
-                viewMode === "list" ? "flex items-center" : ""
-              }`}
-            >
+          <div
+            className={`grid ${
+              viewMode === "card"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "grid-cols-1 gap-4"
+            }`}
+          >
+            {sortedItems.map((item) => (
               <div
-                className={`bg-gray-200 ${
-                  viewMode === "card" ? "h-48" : "h-24 w-24 flex-shrink-0"
-                } flex items-center justify-center`}
+                key={item._id || item.id}
+                className={`border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
+                  viewMode === "list" ? "flex items-center" : ""
+                }`}
               >
-                {item.images && item.images[0] ? (
-                  <img 
-                    src={item.images[0]} 
-                    alt={item.productName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-gray-500 text-xs">placeholder</span>
-                )}
-              </div>
-              <div className={`p-4 ${viewMode === "list" ? "flex-1 flex items-center justify-between" : ""}`}>
-                <div className={viewMode === "list" ? "flex-1" : ""}>
-                  <div className={`${viewMode === "list" ? "flex items-center justify-between mb-2" : "flex justify-between items-start mb-2"}`}>
-                    <h3 className="font-medium text-lg">{item.productName}</h3>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full ml-2">
-                      {item.category}
-                    </span>
+                <div
+                  className={`bg-gray-200 ${
+                    viewMode === "card" ? "aspect-square w-full" : "h-24 w-24 flex-shrink-0"
+                  } flex items-center justify-center`}
+                >
+                  {item.images && item.images[0] ? (
+                    <img 
+                      src={item.images[0]} 
+                      alt={item.productName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-500 text-xs">placeholder</span>
+                  )}
+                </div>
+                <div className={`p-4 ${viewMode === "list" ? "flex-1 flex items-center justify-between" : ""}`}>
+                  <div className={viewMode === "list" ? "flex-1" : ""}>
+                    <div className={`${viewMode === "list" ? "flex items-center justify-between mb-2" : "flex justify-between items-start mb-2"}`}>
+                      <h3 className="font-medium text-lg">{item.productName}</h3>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full ml-2">
+                        {item.category}
+                      </span>
+                    </div>
+                    <div className={`text-blue-600 font-bold ${viewMode === "list" ? "mb-0" : "mb-3"}`}>
+                      <div>Rs {item.hourlyPrice}/hour</div>
+                      <div>Rs {item.dailyPrice}/day</div>
+                    </div>
                   </div>
-                  <div className={`text-blue-600 font-bold ${viewMode === "list" ? "mb-0" : "mb-3"}`}>
-                    <div>Rs {item.hourlyPrice}/hour</div>
-                    <div>Rs {item.dailyPrice}/day</div>
+                  <div className={viewMode === "list" ? "ml-4" : ""}>
+                    <button 
+                      onClick={() => navigate(`/product/${item._id || item.id}`)}
+                      className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors ${
+                        viewMode === "list" ? "whitespace-nowrap" : "w-full"
+                      }`}
+                    >
+                      Rent Now
+                    </button>
                   </div>
                 </div>
-                <div className={viewMode === "list" ? "ml-4" : ""}>
-                  <button 
-                    onClick={() => navigate(`/product/${item._id || item.id}`)}
-                    className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors ${
-                      viewMode === "list" ? "whitespace-nowrap" : "w-full"
-                    }`}
-                  >
-                    Rent Now
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
