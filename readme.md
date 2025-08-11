@@ -24,7 +24,8 @@ A unified platform to manage products and schedule pickups.
 - **Online Payments**: Customers can pay directly from rental quotations or orders
 
 ## Feature Checklist
-- tbd.
+- [ ] use units for time(day/hour/week/month)
+- [ ] api endpoints for uploading the products and for customers to rent it.
 
 ---
 
