@@ -7,6 +7,13 @@ import LoginPage from "./components/LoginPage.jsx";
 import RegisterPage from "./components/RegisterPage.jsx";
 import DeliveryPage from "./pages/DeliveryPage.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import ContactPage from "./pages/ContactPage";
+
+<Routes>
+  {/* Your existing routes */}
+  <Route path="/contact" element={<ContactPage />} />
+</Routes>
+
 function App() {
   return (
     <Router>
@@ -21,7 +28,7 @@ function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
         </Routes>
