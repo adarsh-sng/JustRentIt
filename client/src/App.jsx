@@ -3,8 +3,9 @@ import "./App.css";
 import Navbar from "./components/Navbar.jsx";
 import RentalShop from "./pages/RentalShop.jsx";
 import ProductPage from "./pages/ProductPage.jsx";
-import LoginPage from "./components/login page/LoginPage.jsx";
-
+import LoginPage from "./components/LoginPage.jsx";
+import DeliveryPage from "./pages/DeliveryPage.jsx"
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 function App() {
   return (
     <Router>
