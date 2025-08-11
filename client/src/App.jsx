@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/Navbar.jsx'
 import RentalShop from './pages/RentalShop.jsx'
+import ProductPage from './pages/ProductPage.jsx'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/rental-shop" element={<RentalShop />} />
+          <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile" element={<Profile />} />

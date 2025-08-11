@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { products, categories } from '../data/products';
 
 const RentalShop = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState("card");
   const [sortBy, setSortBy] = useState("name");
   const [priceRange, setPriceRange] = useState("all");
@@ -9,68 +12,7 @@ const RentalShop = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
-  const items = [
-    {
-      id: 1,
-      productName: "Camera DSLR Canon",
-      productPrice: 50,
-      category: "Electronics",
-    },
-    {
-      id: 2,
-      productName: "Laptop MacBook Pro",
-      productPrice: 80,
-      category: "Electronics",
-    },
-    {
-      id: 3,
-      productName: "Bike Mountain Pro",
-      productPrice: 30,
-      category: "Sports",
-    },
-    {
-      id: 4,
-      productName: "Guitar Acoustic",
-      productPrice: 25,
-      category: "Music",
-    },
-    {
-      id: 5,
-      productName: "Projector HD 4K",
-      productPrice: 60,
-      category: "Electronics",
-    },
-    {
-      id: 6,
-      productName: "Drone Professional",
-      productPrice: 90,
-      category: "Electronics",
-    },
-    { id: 7, productName: "Sound System", productPrice: 40, category: "Music" },
-    {
-      id: 8,
-      productName: "Gaming Console",
-      productPrice: 35,
-      category: "Gaming",
-    },
-    {
-      id: 9,
-      productName: "Tent Camping 4P",
-      productPrice: 20,
-      category: "Outdoor",
-    },
-  ];
-
-  const categories = [
-    "All",
-    "Electronics",
-    "Sports",
-    "Music",
-    "Gaming",
-    "Outdoor",
-  ];
-
-  const filteredItems = items.filter((item) => {
+  const filteredItems = products.filter((item) => {
     if (
       searchTerm &&
       !item.productName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -276,7 +218,10 @@ const RentalShop = () => {
                 <p className="text-blue-600 font-bold mb-3">
                   Rs {item.productPrice}/day
                 </p>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full transition-colors">
+                <button 
+                  onClick={() => navigate(`/product/${item.id}`)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full transition-colors"
+                >
                   Rent Now
                 </button>
               </div>
