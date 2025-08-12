@@ -3,29 +3,28 @@
 
 A unified platform to manage products and schedule pickups.
 
-## Core Features
-### Rental Product Management
-- **Define Rentable Products**: Mark products as rentable and configure units (e.g., per hour, day, week)
-- **Custom Rental Duration**: Support for both short-term and long-term rentals with flexible duration options
-- **Product Availability**: View availability in calendar or list view to avoid overbooking
+## Our Solution
+We've developed a versatile rental platform with simplicity at its core:
+- **Dual Role System**: Every registered user automatically becomes both a renter and a customer
+- **Two-Way Marketplace**: Users can rent items or offer their own products to others
+- **Flexible Rental Options**: Choose between short-term or long-term rental agreements
+- **Visual Listings**: Upload multiple product images to showcase rental items
 
-### Rental Order Workflow
-- **Quotations & Orders**: Create rental quotations, confirm them into orders, and generate rental contracts
-- **Customer Portal**: Customers can review, confirm, and pay for rentals online
-- **Scheduling**: Track and schedule pickup and return with precise timing
+# [🔗video link on youtube](https://youtu.be/Vwah8t_rtvQ)
 
-### Smart Notifications
-- **Customer Reminders**: Automated emails and portal alerts before return dates
-- **Staff Notifications**: Email alerts to team members before scheduled returns
-- **Configurable Timing**: Customizable notification lead times to match business needs
+## Features
+- Dashboard to show your analytics
+- A cart feature to order in bulk 
+- Users can see registered items without signing in. but for renting items, they need to sign in.
+- Fully responsive design using Tailwind CSS for rapid development and clear user interface
+- Simple, clean and suckless UI design philosophy
 
-### Payment Processing
-- **Gateway Integration**: Secure payment options through popular providers (PayPal, Stripe, Razorpay)
-- **Online Payments**: Customers can pay directly from rental quotations or orders
-
-## Feature Checklist
-- [ ] use units for time(day/hour/week/month)
-- [ ] api endpoints for uploading the products and for customers to rent it.
+## Coding tech stack 
+- **react** for frontend in javascript (reason: ease of working together in short time frame and modular design capabilities)
+- **tailwindcss** for prototyping in given short time frame and making the design responsive.
+- **express** for backend API development in JavaScript (reason: maintaining language uniformity with the frontend and rapid development capabilities)
+- **mongodb** for storage
+- **cloudinary** for uploading images
 
 ---
 
