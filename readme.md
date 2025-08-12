@@ -26,6 +26,32 @@ We've developed a versatile rental platform with simplicity at its core:
 - **mongodb** for storage
 - **cloudinary** for uploading images
 
+## Project Structure
+> we couldnt make time for a detailed docs. **so writing in short here.**
+- **client/**: Contains the frontend code (React)
+    
+    - **components** : Reusable UI components
+    - **pages**: Application views including:
+        - Home: Landing page with featured rentals
+        - Products: Browse available items
+        - ProductDetails: Individual product information and booking
+        - Dashboard: User analytics and management
+        - Cart: Review and complete rental orders
+        - Profile: User information and listed items
+        - Auth: Login and registration screens
+    - **other stuff**: Miscellaneous utilities and helpers hooks.
+
+- **server/**: Contains the backend code (Express)
+    
+    - **controllers/**: Business logic handlers for API endpoints
+    - **models/**: MongoDB schema definitions for:
+        - User: Authentication and profile information
+        - Product: Rental item details and availability
+        - Order: Rental transactions and history
+        - Review: User feedback and ratings
+    - **routes/**: API endpoint definitions and request routing
+    - **middleware/**: Authentication, validation, and request processing
+- 
 ---
 
 ##  Team Serenity
